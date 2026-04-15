@@ -1,0 +1,30 @@
+name: Sync docs to Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'scripts/build-wiki.py'
+      - '.github/workflows/wiki-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build wiki from docs
+        run: python3 scripts/build-wiki.py
+
+      - uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: wiki/
+          preprocess: false

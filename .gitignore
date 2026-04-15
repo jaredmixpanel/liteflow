@@ -21,3 +21,6 @@ Thumbs.db
 
 # OMC state
 .omc/
+
+# Wiki build output
+wiki/
