@@ -207,6 +207,33 @@ class LiteflowEngine:
                     self._handle_fan_out(
                         run_id, step_id, output["_fan_out_items"], context, logger
                     )
+                elif context.get("_fan_out_step"):
+                    # This step was spawned by a fan-out — check if
+                    # all parallel items are now complete
+                    merged = self._check_fan_out_complete(
+                        run_id, step_id, context
+                    )
+                    if merged is not None:
+                        logger.info(
+                            f"All fan-out items complete, "
+                            f"collected {len(merged.get('_fan_in_results', []))} results"
+                        )
+                        # Enqueue successors with collected results
+                        successors = graph.get_successors(
+                            self.workflows_db, step_id
+                        )
+                        merged[step_id] = output
+                        for edge in successors:
+                            if self._evaluate_edge(edge, merged, output):
+                                queue.enqueue(
+                                    self.queue_db,
+                                    edge["target"],
+                                    run_id,
+                                    merged,
+                                )
+                                logger.info(
+                                    f"Enqueued successor '{edge['target']}'"
+                                )
                 else:
                     # Get successors and evaluate edge conditions
                     successors = graph.get_successors(self.workflows_db, step_id)
@@ -282,6 +309,9 @@ class LiteflowEngine:
     ) -> None:
         """Handle fan-out by enqueuing the next step once per item.
 
+        Each fanned-out message carries metadata so the engine can track
+        completion and collect results for the fan-in step.
+
         Args:
             run_id: Current run identifier.
             step_id: The fan-out step that produced the items.
@@ -297,14 +327,64 @@ class LiteflowEngine:
         logger.info(f"Fanning out {len(items)} items to {len(successors)} successor(s)")
 
         for edge in successors:
-            for item in items:
+            for idx, item in enumerate(items):
                 item_context = dict(context)
                 item_context.update(item)
                 item_context["_fan_out_step"] = step_id
                 item_context["_fan_out_total"] = len(items)
+                item_context["_fan_out_index"] = idx
                 queue.enqueue(
                     self.queue_db, edge["target"], run_id, item_context
                 )
+
+    def _check_fan_out_complete(
+        self,
+        run_id: str,
+        step_id: str,
+        context: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """Check if all fan-out items for a step have completed.
+
+        When all items are done, collects their outputs into
+        _fan_in_results and returns the merged context. Returns None
+        if items are still pending.
+        """
+        fan_out_step = context.get("_fan_out_step")
+        fan_out_total = context.get("_fan_out_total", 0)
+
+        if not fan_out_step or fan_out_total == 0:
+            return None
+
+        # Count completed runs of this step spawned by the fan-out
+        step_runs = state.get_step_runs(self.execution_db, run_id)
+        completed = [
+            sr for sr in step_runs
+            if sr["step_id"] == step_id and sr["status"] == "completed"
+        ]
+
+        if len(completed) < fan_out_total:
+            return None  # Still waiting for more items
+
+        # All items done — collect results
+        results = []
+        for sr in completed:
+            output = sr.get("output", {})
+            if isinstance(output, str):
+                try:
+                    output = json.loads(output)
+                except (json.JSONDecodeError, TypeError):
+                    output = {}
+            results.append(output)
+
+        # Build merged context with collected results
+        merged = dict(context)
+        # Remove fan-out metadata
+        merged.pop("_fan_out_step", None)
+        merged.pop("_fan_out_total", None)
+        merged.pop("_fan_out_index", None)
+        merged["_fan_in_results"] = results
+
+        return merged
 
     def _evaluate_edge(
         self,
