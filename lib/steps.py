@@ -435,7 +435,7 @@ def execute_transform(
         "None": None,
     }
 
-    eval_globals = {"__builtins__": safe_builtins}
+    eval_globals = {"__builtins__": safe_builtins, "json": json}
     eval_locals = dict(context)
     eval_locals["context"] = context
     eval_locals["ctx"] = StepContext(context)
@@ -476,7 +476,7 @@ def execute_gate(
         "None": None,
     }
 
-    eval_globals = {"__builtins__": safe_builtins}
+    eval_globals = {"__builtins__": safe_builtins, "json": json}
     eval_locals = dict(context)
     eval_locals["context"] = context
     eval_locals["ctx"] = StepContext(context)
