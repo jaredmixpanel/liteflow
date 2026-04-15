@@ -103,6 +103,16 @@ def cmd_status(args: argparse.Namespace) -> None:
 
     engine = LiteflowEngine()
     status = engine.get_status()
+
+    if getattr(args, "quiet", False):
+        # In quiet mode, only output if something needs attention now:
+        # stuck queue items or missing databases indicate active problems.
+        # Historical failed runs don't — they're already recorded.
+        has_issues = status.get("queue_depth", 0) > 0
+        if has_issues:
+            _output(status)
+        return
+
     _output(status)
 
 
@@ -209,7 +219,12 @@ def main() -> None:
     sub.add_argument("run_id", help="Run identifier to inspect")
 
     # status
-    subparsers.add_parser("status", help="Show system status")
+    sub = subparsers.add_parser("status", help="Show system status")
+    sub.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress output when healthy (exit 0 silently)",
+    )
 
     # auth
     sub = subparsers.add_parser("auth", help="Manage credentials")
