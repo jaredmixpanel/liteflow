@@ -11,8 +11,12 @@ Claude serves simultaneously as the **builder**, the **orchestrator**, the **deb
 ## Quick Start
 
 ```
-# 1. Install the plugin
+# 1. Install the plugin (option A: direct path)
 claude --plugin-dir /path/to/liteflow
+
+# 1. Install the plugin (option B: dev marketplace)
+/plugin marketplace add /path/to/liteflow
+/plugin install liteflow@liteflow-dev
 
 # 2. Initialize
 /liteflow:flow-setup
@@ -52,13 +56,14 @@ liteflow is built on four SQLite libraries composed together:
 | Type | Purpose | Example |
 |------|---------|---------|
 | `script` | Run a Python script (step contract) | API calls, data processing |
-| `shell` | Run a shell command | `gh`, `git`, `curl` |
-| `claude` | LLM reasoning step | Classification, summarization |
+| `shell` | Run a shell command or script file | `gh`, `git`, `curl`, `.sh` scripts |
+| `claude` | LLM reasoning step (supports all CLI flags) | Classification, summarization |
 | `query` | SQL against any SQLite DB | Cross-plugin data queries |
 | `http` | HTTP request (zero deps) | Webhooks, REST APIs |
 | `transform` | Pure data transformation | Reshape, filter, extract |
 | `gate` | Conditional branch point | If/else routing |
-| `fan-out`/`fan-in` | Parallel processing | Process each item in array |
+| `fan-out` | Split array into parallel executions | Process each item independently |
+| `fan-in` | Collect parallel results | Merge fan-out outputs into one array |
 
 ## The Step Contract
 
