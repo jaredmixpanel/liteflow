@@ -105,7 +105,7 @@ if __name__ == "__main__":
 ### Triggers
 | Command | Description |
 |---------|-------------|
-| `/liteflow:flow-schedule` | Create a scheduled Routine |
+| `/liteflow:flow-schedule` | Schedule a workflow (session cron, desktop, or cloud) |
 | `/liteflow:flow-on-github` | Create a GitHub event Routine |
 | `/liteflow:flow-on-api` | Create an API-triggered Routine |
 
