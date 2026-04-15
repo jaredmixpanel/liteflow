@@ -84,7 +84,7 @@ Executes a shell command. Context values are injected as environment variables.
 
 ## claude
 
-Sends a templated prompt to Claude and captures the response.
+Sends a templated prompt to Claude via the `claude` CLI and captures the response.
 
 **When to use**: Judgment calls, text generation, classification, summarization — tasks requiring reasoning, not computation.
 
@@ -92,11 +92,16 @@ Sends a templated prompt to Claude and captures the response.
 - `prompt`: Prompt string with `{variable}` template placeholders
 
 **Optional config**:
-- `model`: Model to use (default: `sonnet`). Values: `haiku`, `sonnet`, `opus`
-- `system`: System prompt string
-- `max_tokens`: Maximum response tokens (default: 4096)
-- `temperature`: Sampling temperature (default: 0.0)
-- `response_format`: `text` or `json` (default: `text`). When `json`, the response is parsed as JSON.
+- `parse_json`: If `true`, uses `--output-format json` for structured output and parses the result (default: `false`)
+- `timeout`: Subprocess timeout in seconds (default: 120)
+- `flags`: Dict of arbitrary CLI flags passed directly to `claude -p`. Any flag the CLI supports can be used here. String values become `--key value`, booleans become `--key` (if true), lists become `--key item1 item2`. Template substitution is applied to string values. Common flags:
+  - `model`: `"sonnet"`, `"opus"`, `"haiku"`, or a full model ID
+  - `max-turns`: Limit agentic turns (integer)
+  - `append-system-prompt`: Additional system instructions (string)
+  - `allowedTools`: Tools to permit (list, e.g. `["Read", "Bash(git:*)"]`)
+  - `disallowedTools`: Tools to block (list)
+  - `permission-mode`: `"plan"`, `"auto"`, etc.
+  - `verbose`: Enable verbose logging (boolean)
 
 **Example definition**:
 ```json
@@ -105,14 +110,17 @@ Sends a templated prompt to Claude and captures the response.
   "type": "claude",
   "config": {
     "prompt": "Classify each issue as bug, feature, or chore:\n\n{fetch_issues.issues}",
-    "model": "haiku",
-    "response_format": "json",
-    "system": "Return a JSON array of objects with 'id' and 'category' fields."
+    "parse_json": true,
+    "flags": {
+      "model": "haiku",
+      "max-turns": 1,
+      "append-system-prompt": "Return a JSON array of objects with 'id' and 'category' fields."
+    }
   }
 }
 ```
 
-**Output**: `{"response": "..."}` for text format, or the parsed JSON object directly for json format.
+**Output**: `{"response": "..."}` for text mode, or the parsed JSON object directly when `parse_json` is `true`.
 
 ---
 

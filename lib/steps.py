@@ -193,16 +193,46 @@ def execute_claude(
     Templates variables in the prompt from context using {variable} syntax.
 
     Config fields:
-        prompt: Prompt template string.
-        timeout: Optional timeout in seconds (default 120).
-        parse_json: If True, attempt to parse the response as JSON (default False).
+        prompt: Prompt template string (required).
+        timeout: Timeout in seconds for subprocess (default 120).
+        parse_json: If True, use --output-format json for structured output
+            and parse the result (default False).
+        flags: Dict of arbitrary CLI flags passed directly to `claude`.
+            String values become --key value, booleans become --key (if true),
+            lists become --key item1 item2. Template substitution is applied
+            to string values. Examples:
+                {"model": "opus"}              → --model opus
+                {"max-turns": 3}               → --max-turns 3
+                {"verbose": true}              → --verbose
+                {"allowedTools": ["Read"]}      → --allowedTools Read
+                {"append-system-prompt": "..."}→ --append-system-prompt ...
     """
     prompt = _template(config["prompt"], context)
     timeout = config.get("timeout", 120)
     parse_json = config.get("parse_json", False)
 
+    cmd = ["claude", "-p", prompt]
+
+    # Use --output-format json when parse_json is requested for reliable parsing
+    if parse_json:
+        cmd.extend(["--output-format", "json"])
+
+    # Pass through arbitrary CLI flags
+    flags = config.get("flags", {})
+    for key, value in flags.items():
+        flag = f"--{key}" if not key.startswith("-") else key
+        if isinstance(value, bool):
+            if value:
+                cmd.append(flag)
+        elif isinstance(value, list):
+            cmd.append(flag)
+            cmd.extend(str(v) for v in value)
+        else:
+            cmd.append(flag)
+            cmd.append(_template(str(value), context))
+
     result = subprocess.run(
-        ["claude", "-p", prompt],
+        cmd,
         capture_output=True,
         text=True,
         timeout=timeout,
@@ -217,9 +247,19 @@ def execute_claude(
 
     if parse_json:
         try:
-            return json.loads(response)
+            parsed = json.loads(response)
+            # --output-format json wraps the response in a structured object
+            # with a "result" field containing the actual text
+            if isinstance(parsed, dict) and "result" in parsed:
+                result_text = parsed["result"]
+                # Try to parse the result text itself as JSON
+                try:
+                    return json.loads(result_text)
+                except (json.JSONDecodeError, TypeError):
+                    return {"response": result_text}
+            return parsed
         except json.JSONDecodeError:
-            # Try to extract JSON from the response
+            # Fallback: try to extract JSON from freeform text
             json_match = re.search(r"\{[\s\S]*\}", response)
             if json_match:
                 try:
