@@ -1,11 +1,11 @@
 ---
 name: flow-schedule
-description: Schedule a workflow to run automatically (in-session, desktop, or cloud)
-argument-hint: "<workflow-name> <cadence> [--method session|desktop|cloud]"
+description: Schedule a workflow to run automatically (session, desktop, cron, or cloud)
+argument-hint: "<workflow-name> <cadence> [--method session|desktop|cron|cloud]"
 allowed-tools: ["Bash", "CronCreate", "CronList", "CronDelete"]
 ---
 
-Schedule a workflow to run on a recurring cadence. Three scheduling methods are available, each with different trade-offs. If the user doesn't specify a method, recommend based on their needs.
+Schedule a workflow to run on a recurring cadence. Four scheduling methods are available, each with different trade-offs. If the user doesn't specify a method, recommend based on their needs.
 
 ## 1. In-Session Scheduling (default, via CronCreate)
 
@@ -48,7 +48,40 @@ Desktop tasks:
 - Support missed-run catch-up (one catch-up run on wake)
 - Minimum interval: 1 minute
 
-## 3. Cloud Routines (persistent remote)
+## 3. System Cron (persistent, no Claude Code required)
+
+For persistent scheduling that runs the workflow directly via Python, without needing Claude Code. Best for workflows that don't use `claude` step types — pure automation like data sync, health checks, and notification pipelines.
+
+Generate a crontab entry for the user. The entry uses the `cron-runner.sh` wrapper script:
+
+```
+<cron-expression> ${CLAUDE_PLUGIN_ROOT}/scripts/cron-runner.sh <workflow-name>
+```
+
+Convert the user's cadence to a cron expression (same rules as section 1).
+
+Provide the user with:
+1. The exact crontab entry to add
+2. Instructions: run `crontab -e` and paste the line
+3. How to verify: `crontab -l` to list, `crontab -e` to edit
+
+Example output for "run health-check every morning at 9am":
+```
+0 9 * * * ${CLAUDE_PLUGIN_ROOT}/scripts/cron-runner.sh health-check
+```
+
+With initial context:
+```
+*/30 * * * * ${CLAUDE_PLUGIN_ROOT}/scripts/cron-runner.sh data-sync --context '{"source": "prod"}'
+```
+
+Inform the user that:
+- System cron does NOT require Claude Code to be running
+- Workflows with `claude` step types will fail under system cron (no Claude CLI available)
+- Execution logs are written to `~/.liteflow/cron.log`
+- The machine must be awake for cron to fire
+
+## 4. Cloud Routines (persistent remote)
 
 For schedules that should run even when the user's machine is off. Uses Anthropic's cloud infrastructure.
 
@@ -69,5 +102,6 @@ If the user asks for a one-time delayed execution (e.g., "run this workflow in 3
 
 If the user doesn't specify a method, recommend based on:
 - **"I want to poll while I work"** → In-session (CronCreate)
-- **"I want this to run every day"** → Desktop scheduled task
+- **"I want this to run every day"** → Desktop scheduled task or system cron
+- **"I want this to run without Claude Code"** → System cron
 - **"I want this to run even when my laptop is closed"** → Cloud Routine

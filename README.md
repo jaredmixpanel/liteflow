@@ -138,6 +138,7 @@ liteflow composes with Claude Code's full automation stack:
 | **`/loop`** | Session-scoped | Local | Polling, development iteration |
 | **In-session cron** (`CronCreate`) | Session-scoped | Local | Recurring checks during a session |
 | **Desktop scheduled tasks** | Persistent | Local | Daily/weekly automations with local file access |
+| **System cron** | Persistent | Local | Persistent scheduling without Claude Code |
 | **Routines** | Persistent | Cloud | Schedule, GitHub events, or API triggers |
 | **Hooks** | Persistent | Local | Session lifecycle (SessionStart, PostToolUse, Stop) |
 | **One-shot reminders** | Session-scoped | Local | "Run this workflow in 30 minutes" |
