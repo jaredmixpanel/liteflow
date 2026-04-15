@@ -1,0 +1,47 @@
+{
+  "nodes": [
+    {
+      "id": "check-databases",
+      "type": "script",
+      "script": "steps/check_databases.py",
+      "description": "Run PRAGMA integrity_check on all liteflow databases"
+    },
+    {
+      "id": "check-stale-runs",
+      "type": "query",
+      "script": "steps/check_stale_runs.py",
+      "description": "Find workflow runs stuck in running status for over 1 hour"
+    },
+    {
+      "id": "check-dead-letters",
+      "type": "script",
+      "script": "steps/check_dead_letters.py",
+      "description": "Check queue.db for dead letter messages"
+    },
+    {
+      "id": "check-credentials",
+      "type": "script",
+      "script": "steps/check_credentials.py",
+      "description": "Test all stored credentials for validity"
+    },
+    {
+      "id": "check-disk-usage",
+      "type": "shell",
+      "script": "steps/check_disk_usage.sh",
+      "description": "Report disk usage for all liteflow data"
+    },
+    {
+      "id": "generate-report",
+      "type": "claude",
+      "script": "steps/generate_report.py",
+      "description": "Compile all findings into a health report"
+    }
+  ],
+  "edges": [
+    { "from": "check-databases", "to": "generate-report" },
+    { "from": "check-stale-runs", "to": "generate-report" },
+    { "from": "check-dead-letters", "to": "generate-report" },
+    { "from": "check-credentials", "to": "generate-report" },
+    { "from": "check-disk-usage", "to": "generate-report" }
+  ]
+}

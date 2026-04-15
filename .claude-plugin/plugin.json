@@ -1,0 +1,10 @@
+{
+  "name": "liteflow",
+  "version": "0.1.0",
+  "description": "Workflow automation as a Claude Code plugin — an n8n-lite requiring zero infrastructure. DAG-based workflows with SQLite storage, Claude reasoning steps, and conversational construction.",
+  "author": {
+    "name": "Jared McFarland"
+  },
+  "keywords": ["workflow", "automation", "sqlite", "dag", "orchestration"],
+  "license": "MIT"
+}

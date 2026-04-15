@@ -1,0 +1,7 @@
+{
+  "name": "liteflow-health",
+  "description": "Self-health-check: database integrity, stale runs, credential validation, disk usage",
+  "version": "1.0.0",
+  "required_credentials": [],
+  "variables": {}
+}

@@ -1,0 +1,9 @@
+{
+  "name": "pr-review",
+  "description": "Automated PR review: fetch diff, analyze, check coverage, post review",
+  "version": "1.0.0",
+  "required_credentials": ["github"],
+  "variables": {
+    "pr_url": "Pull request URL or owner/repo#number"
+  }
+}

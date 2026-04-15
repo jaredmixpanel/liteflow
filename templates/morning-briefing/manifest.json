@@ -1,0 +1,10 @@
+{
+  "name": "morning-briefing",
+  "description": "Daily briefing: GitHub activity, pending PRs, open issues",
+  "version": "1.0.0",
+  "required_credentials": ["github"],
+  "variables": {
+    "github_username": "Your GitHub username",
+    "repos": "Comma-separated list of repos to monitor (owner/repo)"
+  }
+}

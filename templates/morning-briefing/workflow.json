@@ -1,0 +1,33 @@
+{
+  "nodes": [
+    {
+      "id": "fetch-prs",
+      "type": "script",
+      "script": "steps/fetch_prs.py",
+      "description": "Fetch open PRs requesting review from the user"
+    },
+    {
+      "id": "fetch-issues",
+      "type": "script",
+      "script": "steps/fetch_issues.py",
+      "description": "Fetch open issues assigned to the user"
+    },
+    {
+      "id": "fetch-notifications",
+      "type": "script",
+      "script": "steps/fetch_notifications.py",
+      "description": "Fetch recent GitHub notifications"
+    },
+    {
+      "id": "summarize",
+      "type": "claude",
+      "script": "steps/summarize.py",
+      "description": "Summarize all findings into a daily briefing"
+    }
+  ],
+  "edges": [
+    { "from": "fetch-prs", "to": "summarize" },
+    { "from": "fetch-issues", "to": "summarize" },
+    { "from": "fetch-notifications", "to": "summarize" }
+  ]
+}

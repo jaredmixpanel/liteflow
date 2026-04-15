@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# liteflow runtime data (user-specific)
+*.db
+
+# Plugin settings (user-specific)
+.claude/*.local.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# OMC state
+.omc/

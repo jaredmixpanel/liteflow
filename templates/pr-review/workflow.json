@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "fetch-diff",
+      "type": "shell",
+      "script": "steps/fetch_diff.sh",
+      "description": "Fetch the PR diff using gh CLI"
+    },
+    {
+      "id": "analyze-changes",
+      "type": "claude",
+      "script": "steps/analyze_changes.py",
+      "description": "Analyze the diff for issues, patterns, and suggestions"
+    },
+    {
+      "id": "check-tests",
+      "type": "shell",
+      "script": "steps/check_tests.sh",
+      "description": "Check PR CI status and test results"
+    },
+    {
+      "id": "generate-review",
+      "type": "claude",
+      "script": "steps/generate_review.py",
+      "description": "Generate a structured review combining analysis and test results"
+    },
+    {
+      "id": "post-review",
+      "type": "shell",
+      "script": "steps/post_review.sh",
+      "description": "Post the review comment to the PR"
+    }
+  ],
+  "edges": [
+    { "from": "fetch-diff", "to": "analyze-changes" },
+    { "from": "fetch-diff", "to": "check-tests" },
+    { "from": "analyze-changes", "to": "generate-review" },
+    { "from": "check-tests", "to": "generate-review" },
+    { "from": "generate-review", "to": "post-review" }
+  ]
+}
