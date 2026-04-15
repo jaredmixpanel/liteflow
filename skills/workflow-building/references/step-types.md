@@ -55,19 +55,19 @@ if __name__ == "__main__":
 
 ## shell
 
-Executes a shell command. Context values are injected as environment variables.
+Executes a shell command or shell script file. Context values are injected as `LITEFLOW_*` environment variables and the full context is available as `$LITEFLOW_CONTEXT` (JSON).
 
-**When to use**: System commands, file operations, CLI tools, quick one-liners that do not need Python.
+**When to use**: System commands, CLI tools, file operations, or reusable `.sh` scripts.
 
-**Required config**:
-- `command`: Shell command string (supports template substitution)
+**Required config** (one of):
+- `command`: Inline shell command string (supports template substitution)
+- `file`: Path to a shell script file (relative to `~/.liteflow/` or absolute)
 
 **Optional config**:
+- `args`: List of arguments when using `file` (supports template substitution)
 - `timeout`: Maximum execution time in seconds (default: 120)
-- `shell`: Shell to use (default: `/bin/sh`)
-- `continue_on_error`: Boolean (default: false)
 
-**Example definition**:
+**Example — inline command**:
 ```json
 {
   "id": "count_files",
@@ -78,7 +78,19 @@ Executes a shell command. Context values are injected as environment variables.
 }
 ```
 
-**Output**: Captured as `{"stdout": "...", "stderr": "...", "exit_code": 0}`. Nonzero exit codes are treated as failures unless `continue_on_error` is true.
+**Example — script file**:
+```json
+{
+  "id": "fetch_diff",
+  "type": "shell",
+  "config": {
+    "file": "steps/pr-review/fetch_diff.sh",
+    "args": ["{repo}", "{pr_number}"]
+  }
+}
+```
+
+**Output**: If stdout is valid JSON it is parsed directly; otherwise captured as `{"stdout": "...", "exit_code": 0}`. Nonzero exit codes raise an error.
 
 ---
 

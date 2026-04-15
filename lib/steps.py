@@ -140,15 +140,17 @@ def execute_shell(
     run_id: str,
     liteflow_home: str,
 ) -> Dict[str, Any]:
-    """Run a shell command.
+    """Run a shell command or shell script file.
 
     Sets environment variables from context and captures stdout.
 
     Config fields:
-        command: Shell command string.
+        command: Inline shell command string (mutually exclusive with file).
+        file: Path to a shell script file, relative to liteflow_home or
+            absolute (mutually exclusive with command).
+        args: Optional list of arguments when using file (supports templating).
         timeout: Optional timeout in seconds (default 120).
     """
-    command = _template(config["command"], context)
     timeout = config.get("timeout", 120)
 
     # Flatten context into env vars with LITEFLOW_ prefix
@@ -159,15 +161,40 @@ def execute_shell(
         if isinstance(value, (str, int, float, bool)):
             env[f"LITEFLOW_{key.upper()}"] = str(value)
 
-    result = subprocess.run(
-        command,
-        shell=True,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        env=env,
-        cwd=liteflow_home,
-    )
+    script_file = config.get("file")
+    if script_file:
+        # Run a shell script file
+        script_path = Path(script_file).expanduser()
+        if not script_path.is_absolute():
+            script_path = Path(liteflow_home).expanduser() / script_file
+
+        if not script_path.exists():
+            raise FileNotFoundError(f"Shell script not found: {script_path}")
+
+        cmd_args = ["bash", str(script_path)]
+        for arg in config.get("args", []):
+            cmd_args.append(_template(str(arg), context))
+
+        result = subprocess.run(
+            cmd_args,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env=env,
+            cwd=str(script_path.parent),
+        )
+    else:
+        # Run an inline command
+        command = _template(config["command"], context)
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env=env,
+            cwd=liteflow_home,
+        )
 
     if result.returncode != 0:
         raise RuntimeError(
