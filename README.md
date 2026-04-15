@@ -130,13 +130,20 @@ liteflow ships with workflow templates for common patterns:
 
 ## Trigger Integration
 
-liteflow composes with Claude Code's automation stack:
+liteflow composes with Claude Code's full automation stack:
 
-- **Routines** (primary) — Schedule, GitHub events, or API triggers on Anthropic's cloud
-- **`/loop`** — In-session polling for development and monitoring
-- **Hooks** — Session lifecycle triggers (SessionStart, PostToolUse, Stop)
-- **Manual** — Direct invocation via `/liteflow:flow-run`
-- **Chained** — Workflows triggering other workflows
+| Method | Persistence | Runs on | Best for |
+|--------|------------|---------|----------|
+| **Manual** (`/liteflow:flow-run`) | None | Local | One-off execution |
+| **`/loop`** | Session-scoped | Local | Polling, development iteration |
+| **In-session cron** (`CronCreate`) | Session-scoped | Local | Recurring checks during a session |
+| **Desktop scheduled tasks** | Persistent | Local | Daily/weekly automations with local file access |
+| **Routines** | Persistent | Cloud | Schedule, GitHub events, or API triggers |
+| **Hooks** | Persistent | Local | Session lifecycle (SessionStart, PostToolUse, Stop) |
+| **One-shot reminders** | Session-scoped | Local | "Run this workflow in 30 minutes" |
+| **Chained workflows** | Per-run | Local | Workflows triggering other workflows |
+
+Use `/liteflow:flow-schedule` to set up any scheduled trigger. A `loop.md` template is included at `templates/loop.md` — copy it to `.claude/loop.md` to make bare `/loop` run liteflow health checks automatically.
 
 ## Dependencies
 

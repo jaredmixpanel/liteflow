@@ -63,7 +63,9 @@ Context accumulates across steps — each step's output merges under its step_id
 - **${CLAUDE_PLUGIN_ROOT}**: All commands reference the plugin root this way — never hardcode paths.
 - **Template substitution**: `{variable}` in step configs gets replaced from context. Dot-path supported: `{step_id.nested.key}`.
 - **Transform/gate eval**: Both `execute_transform` and `execute_gate` use restricted `eval()` with `context` available as a local variable plus safe builtins.
-- **Claude step type**: Invokes Claude via `subprocess.run(["claude", "-p", prompt])` — the prompt is template-substituted from context.
+- **Claude step type**: Invokes Claude via `subprocess.run(["claude", "-p", prompt])` — the prompt is template-substituted from context. Arbitrary CLI flags are passed via a `flags` dict in the step config.
+- **Shell step file mode**: Shell steps support both inline `command` and `file` (path to a `.sh` script with optional `args`).
+- **Scheduling**: `flow-schedule` uses `CronCreate` for in-session scheduling, Desktop scheduled tasks for persistent local, and Routines for cloud. A `loop.md` template is at `templates/loop.md`.
 - **Fan-out/fan-in**: Fan-out returns `_fan_out_items` for the engine to handle; the engine enqueues N copies of the next step. Fan-in collects from context keys matching the pattern.
 - **Lazy deps**: Core SQLite libraries install silently on first use. Optional SDKs (PyGithub, slack_sdk, etc.) install when a workflow first needs them.
 - **Credentials**: Never stored in plaintext. `SecureStore` encrypts with machine-derived key. Auto-injected into HTTP requests via `HTTPStep._inject_auth()`.
