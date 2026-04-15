@@ -26,7 +26,6 @@ OPTIONAL_SDKS: Dict[str, str] = {
     "linear": "linear-python",
     "sendgrid": "sendgrid",
     "twilio": "twilio",
-    "aws": "boto3",
     "gcp": "google-cloud-core",
     "openai": "openai",
     "anthropic": "anthropic",

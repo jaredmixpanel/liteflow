@@ -156,7 +156,7 @@ The plugin runs on Python's standard library. SQLite libraries are installed aut
 
 ### Optional SDKs
 Service SDKs install on demand when workflows need them:
-- `PyGithub`, `slack_sdk`, `notion-client`, `boto3`, etc.
+- `PyGithub`, `slack_sdk`, `notion-client`, `linear-python`, etc.
 
 ## License
 
