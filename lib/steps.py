@@ -39,7 +39,7 @@ def _template(text: str, context: Dict[str, Any]) -> str:
             return match.group(0)  # leave unresolved
         return str(value)
 
-    return re.sub(r"\{([a-zA-Z0-9_.]+)\}", _replace, text)
+    return re.sub(r"\{([a-zA-Z0-9_.:-]+)\}", _replace, text)
 
 
 def execute_step(
@@ -266,11 +266,19 @@ def execute_claude(
     )
 
     if result.returncode != 0:
-        raise RuntimeError(
-            f"Claude command failed (exit {result.returncode}): {result.stderr.strip()}"
-        )
-
-    response = result.stdout.strip()
+        stdout = result.stdout.strip()
+        # --max-turns exits with code 1 but still produces useful output
+        if "Reached max turns" in stdout and stdout.count("\n") > 0:
+            # Extract the actual response (everything before the error line)
+            lines = stdout.rsplit("\n", 1)
+            response = lines[0].strip() if len(lines) > 1 else stdout
+        else:
+            raise RuntimeError(
+                f"Claude command failed (exit {result.returncode}): "
+                f"{result.stderr.strip() or stdout}"
+            )
+    else:
+        response = result.stdout.strip()
 
     if parse_json:
         try:

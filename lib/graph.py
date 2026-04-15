@@ -228,6 +228,25 @@ def get_successors(db_path: str, step_id: str) -> List[Dict[str, Any]]:
         conn.close()
 
 
+def get_predecessors(db_path: str, step_id: str) -> List[Dict[str, Any]]:
+    """Get inbound transition edges to a step."""
+    resolved = _db_path(db_path)
+    conn = sqlite3.connect(resolved)
+    try:
+        cursor = conn.execute(
+            "SELECT source, target, properties FROM edges WHERE target = ?",
+            (step_id,),
+        )
+        results = []
+        for row in cursor.fetchall():
+            props = json.loads(row[2]) if row[2] else {}
+            if props.get("type") == "transition":
+                results.append({"source": row[0], "target": row[1], **props})
+        return results
+    finally:
+        conn.close()
+
+
 def get_entry_steps(db_path: str, workflow_id: str) -> List[Dict[str, Any]]:
     """Find steps with no inbound transition edges (start nodes)."""
     steps = get_steps(db_path, workflow_id)

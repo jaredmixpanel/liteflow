@@ -215,15 +215,20 @@ class LiteflowEngine:
 
                     for edge in successors:
                         if self._evaluate_edge(edge, context, output):
-                            queue.enqueue(
-                                self.queue_db,
-                                edge["target"],
-                                run_id,
-                                context,
-                            )
-                            logger.info(
-                                f"Enqueued successor '{edge['target']}'"
-                            )
+                            # Check if all predecessors of the target have
+                            # completed before enqueuing (fan-in gate)
+                            if self._all_predecessors_done(
+                                run_id, edge["target"]
+                            ):
+                                queue.enqueue(
+                                    self.queue_db,
+                                    edge["target"],
+                                    run_id,
+                                    context,
+                                )
+                                logger.info(
+                                    f"Enqueued successor '{edge['target']}'"
+                                )
 
             except Exception as e:
                 error_msg = str(e)
@@ -350,6 +355,36 @@ class LiteflowEngine:
                 )
                 return bool(result)
             except Exception:
+                return False
+
+        return True
+
+    def _all_predecessors_done(self, run_id: str, target_step_id: str) -> bool:
+        """Check if all predecessor steps of a target have completed.
+
+        Used to prevent a step with multiple inbound edges from being
+        enqueued before all its predecessors finish (fan-in gate).
+
+        Args:
+            run_id: Current run identifier.
+            target_step_id: The step we want to enqueue.
+
+        Returns:
+            True if all predecessors have a completed step_run.
+        """
+        predecessors = graph.get_predecessors(self.workflows_db, target_step_id)
+        if len(predecessors) <= 1:
+            return True  # Single predecessor or entry step — always ready
+
+        step_runs = state.get_step_runs(self.execution_db, run_id)
+        completed_steps = {
+            sr["step_id"]
+            for sr in step_runs
+            if sr["status"] == "completed"
+        }
+
+        for pred in predecessors:
+            if pred["source"] not in completed_steps:
                 return False
 
         return True
