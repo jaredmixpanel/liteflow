@@ -4,6 +4,8 @@ Workflow automation as a Claude Code plugin. An n8n-lite that requires zero infr
 
 liteflow turns Claude into a conversational workflow automation platform. The entire system runs on Python + SQLite -- no server, no Docker, no web UI. Install the plugin and you have a running workflow automation engine immediately.
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jaredmixpanel/liteflow)
+
 ---
 
 ## Quick Start
