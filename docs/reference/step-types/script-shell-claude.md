@@ -141,6 +141,8 @@ Non-zero exit code raises `RuntimeError` with the command's stderr.
 
 Invokes the Claude CLI (`claude -p <prompt>`) with a template-substituted prompt. Use this step type when you need LLM judgment -- text analysis, generation, classification, or summarization.
 
+[Official Claude CLI Reference](https://code.claude.com/docs/en/cli-reference)
+
 ### Config Fields
 
 | Field | Type | Required | Default | Description |
