@@ -8,6 +8,8 @@ liteflow turns Claude into a conversational workflow automation platform. The en
 
 Claude serves simultaneously as the **builder**, the **orchestrator**, the **debugger**, and — uniquely — a **first-class step type** within workflows.
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jaredmixpanel/liteflow)
+
 ## Quick Start
 
 ```
